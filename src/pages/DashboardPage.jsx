@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../frontend/src/context/AuthContext';
+
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const DashboardPage = () => {
   const [departments, setDepartments] = useState([]);
