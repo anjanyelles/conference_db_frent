@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '../config'; // ✅ Import your API base URL
 
 const AuthContext = createContext();
 
@@ -27,9 +28,13 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserData = async () => {
     try {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      } else {
+        // Optionally fetch user from backend
+        const res = await axios.get(`${API_URL}/api/auth/me`);
+        setUser(res.data);
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
@@ -41,20 +46,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post(`${API_URL}/api/auth/login`, { email, password });
       const { token: newToken, user: userData } = response.data;
-      
+
       setToken(newToken);
       setUser(userData);
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(userData));
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error || 'Login failed' 
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Login failed',
       };
     }
   };
@@ -69,12 +74,12 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    token,   // ✅ Add this line!
+    token,
     login,
     logout,
     loading,
     isAuthenticated: !!user,
-    isHR: user?.is_hr || false
+    isHR: user?.is_hr || false,
   };
 
   return (
